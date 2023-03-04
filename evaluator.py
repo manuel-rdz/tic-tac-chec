@@ -56,7 +56,7 @@ class TTCEvaluator:
         self.board = None
         
     def __sameSign(a, b):
-        return (a < 0 and b < 0)
+        return ((a < 0 and b < 0) or (a > 0  and b > 0))
     
     def __isInsideBoard(row, col):
         return (row >= 0 and row < 4 and col >= 0 and col < 4)
@@ -90,6 +90,42 @@ class TTCEvaluator:
     
     def __getBishopValidMovements(self, position, board):
         validMovements = []
+
+        row = position[0]
+        col = position[1]
+
+        # To check whether I already encountered a piece in this diagonal or not
+        # 0 -> Up-Left Diagonal
+        # 1 -> Up-Right Diagonal
+        # 2 -> Down-Left Diagonal
+        # 3 -> Down-Right Diagonal
+        diagEncounteredPiece = [False] * 4
+
+        # Describe the direction of the movement for the bishop in the same
+        # order as described above
+        movements = [[-1, -1],
+                     [-1, 1],
+                     [1, -1],
+                     [1, 1]]
+
+        # A bishop can move at most 3 squares
+        for i in range(1,4):
+            # Check 4 directions of movement
+            for j in range(4):
+                newCol = col + i*movements[j][0]
+                newRow = row + i*movements[j][1]
+
+                # If I haven't found a piece yet in this direction and its inside the board
+                if not diagEncounteredPiece[j] and self.__isInsideBoard(newRow, newCol):
+                    # If the proposed square its occupied
+                    if board[newRow][newCol] != 0:
+                        # If the piece that occupies the square its from the opponent, then its a valid movement
+                        if not self.__sameSign(board[row][col], board[newRow][newCol]):
+                            validMovements.append((newRow, newCol))
+                        diagEncounteredPiece[j] = True
+                    else: # If not, just append the movement
+                        validMovements.append((newRow, newCol))
+
 
 
     def __getValidMovements(self, pieceCode, position, board, color):
@@ -131,8 +167,6 @@ class TTCEvaluator:
 
         oldBoard[position[0]][position[1]] = pieceCode
         return False
-
-
 
 
     def __wasValidMove(self, oldBoard, newBoard, color):
