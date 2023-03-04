@@ -28,6 +28,15 @@ The set of rules that this evaluator checks are as follows:
 """
 from module import TTCPlayer
 
+class Errors:
+    def __init__(self):
+        self.UNKNOWN_PIECE = "There is an unknown piece on the board"
+        self.REPEATED_PIECE = "There is a piece that appears more than once on the board"
+
+    @staticmethod
+    def UnknownPiece(self):
+        return self.UNKNOWN_PIECE
+
 
 class TTCEvaluator:
     def __init__(self, whitePlayer, blackPlayer):
@@ -37,13 +46,112 @@ class TTCEvaluator:
         self.currentTurn = 0
         self.whiteCaptures = 0
         self.blackCaptures = 0
+        
+        # Hacia arriba
+        self.whitePawnDirection = -1
+        self.blackPawnDirection = -1
 
         self.maxCaptures = 0
         self.maxTurns = 0
+        self.board = None
         
+    def __sameSign(a, b):
+        return (a < 0 and b < 0)
+    
+    def __isInsideBoard(row, col):
+        return (row >= 0 and row < 4 and col >= 0 and col < 4)
 
-    def __wasValidMove(self, oldBoard, newBoard):
+    def __updatePawnDirection(self, board, color):
         pass
+
+    def __getPawnValidMovements(self, position, board, color):
+        validMovements = []
+        yMovement = self.whitePawnDirection if color == 1 else self.blackPawnDirection
+        
+        row = position[0]
+        col = position[1]
+
+        # Move 1 to the front
+        newRow = row + yMovement
+        if self.__isInsideBoard(newRow, col) and board[newRow][col] == 0:
+            validMovements.append((newRow, col))
+
+        # Attack to the left
+        newCol = col - 1
+        if self.__isInsideBoard(newRow, newCol) and board[newRow][newCol] != 0 and not self.__sameSign(board[newRow][newCol], board[row][col]):
+            validMovements.append((newRow, newCol))
+
+        # Attack to the right
+        newCol = col + 1
+        if self.__isInsideBoard(newRow, newCol) and board[newRow][newCol] != 0 and not self.__sameSign(board[newRow][newCol], board[row][col]):
+            validMovements.append((newRow, newCol))
+
+        return validMovements
+    
+    def __getBishopValidMovements(self, position, board):
+        validMovements = []
+
+
+    def __getValidMovements(self, pieceCode, position, board, color):
+        if pieceCode == 1:
+            return self.__getPawnValidMovements(position, board, color)
+        elif pieceCode == 2:
+            return self.__getBishopValidMovements(position, board)
+        elif pieceCode == 3:
+            return self.__getKnightValidMovements(position, board)
+        else:
+            return self.__getRookValidMovements(position, board)
+
+
+    def __compareWithBoardsWithNewPiece(self, pieceCode, oldBoard, newBoard):
+        for i in range(4):
+            for j in range(4):
+                if oldBoard[i][j] == 0:
+                    oldBoard[i][j] = pieceCode
+
+                    if oldBoard == newBoard:
+                        return True
+                    
+                    oldBoard[i][j] = 0
+
+        return False
+    
+    def __compareWithBoardsWithMovement(self, pieceCode, position, oldBoard, newBoard, color):
+        validMovementsSquares = self.__getValidMovements(pieceCode, position, oldBoard, color)
+
+        oldBoard[position[0]][position[1]] = 0
+        for newSquare in validMovementsSquares:
+            # No se si esto haga una copia o solo sea una referencia
+            prevPiece = oldBoard[newSquare[0]][newSquare[1]]
+            oldBoard[newSquare[0]][newSquare[1]] = pieceCode
+            if oldBoard == newBoard:
+                return True
+            
+            oldBoard[newSquare[0]][newSquare[1]] = prevPiece
+
+        oldBoard[position[0]][position[1]] = pieceCode
+        return False
+
+
+
+
+    def __wasValidMove(self, oldBoard, newBoard, color):
+        pieces = [None] * 5
+
+        # No puede haber errores porque es el tablero antiguo
+        for i in range(4):
+            for j in range(4):
+                if self.__sameSign(oldBoard[i][j], color):
+                    pieces[abs(oldBoard[i][j])] = (i, j)
+
+
+        for i in range(1, len(pieces)):
+            if pieces[i] is not None:
+                self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, color)
+            else:
+                self.__compareWithBoardsWithNewPiece(i, oldBoard, newBoard)
+            
+
 
     def __isWinPosition(self, board, player):
         pass
@@ -51,8 +159,14 @@ class TTCEvaluator:
     def __reverseBoard(self, board):
         pass
 
-    def __playTurn(self):
-        pass
+    def __playTurn(self, player, captures, color):
+        newBoard = self.player.play(self.board)
+        
+        if self.__wasValidMove(self.board, newBoard, color):
+            pass
+        else:
+            print(player.name, "made an illegal move. Loses automatically")
+            return False
 
     def __startGame(self):
         while self.currentTurn < self.maxTurns:
@@ -75,6 +189,4 @@ blackPlayer = TTCPlayer([-10, -2, -3, -4])
 evaluator = TTCEvaluator(whitePlayer, blackPlayer)
 
 #evaluator.runAnalysis(100, 8, 150)
-
-
-print([[0] * 4 for _ in range(4)])
+print([10, 11, 2, 3, 4] * -1)
