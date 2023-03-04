@@ -126,6 +126,35 @@ class TTCEvaluator:
                     else: # If not, just append the movement
                         validMovements.append((newRow, newCol))
 
+        return validMovements
+
+    def __getKnightValidMovements(self, position, board):
+        validMovements = []
+
+        row = position[0]
+        col = position[1]
+
+
+        # Describe the movements of the knight
+        movements = [[-2, 1],
+                     [-1, 2],
+                     [1, 2],
+                     [2, 1],
+                     [2, -1],
+                     [1, -2],
+                     [-1, -2],
+                     [-2, -1]]
+        
+        # Loop through all possible movements
+        for move in movements:
+            newRow = row + move[0]
+            newCol = col + move[1]
+
+            # For the knight we just need to check if the new square is valid and it is not occupied by a piece of the same color
+            if self.__isInsideBoard(newRow, newCol) and not self.__sameSign(board[row][col], board[newRow][newCol]):
+                validMovements.append((newRow, newCol))
+
+        return validMovements
 
 
     def __getValidMovements(self, pieceCode, position, board, color):
@@ -155,7 +184,10 @@ class TTCEvaluator:
     def __compareWithBoardsWithMovement(self, pieceCode, position, oldBoard, newBoard, color):
         validMovementsSquares = self.__getValidMovements(pieceCode, position, oldBoard, color)
 
-        oldBoard[position[0]][position[1]] = 0
+        row = position[0]
+        col = position[1]
+
+        oldBoard[row][col] = 0
         for newSquare in validMovementsSquares:
             # No se si esto haga una copia o solo sea una referencia
             prevPiece = oldBoard[newSquare[0]][newSquare[1]]
@@ -165,7 +197,7 @@ class TTCEvaluator:
             
             oldBoard[newSquare[0]][newSquare[1]] = prevPiece
 
-        oldBoard[position[0]][position[1]] = pieceCode
+        oldBoard[row][col] = pieceCode
         return False
 
 
