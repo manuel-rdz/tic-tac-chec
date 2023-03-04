@@ -103,7 +103,7 @@ class TTCEvaluator:
 
         # Describe the direction of the movement for the bishop in the same
         # order as described above
-        movements = [[-1, -1],
+        movDirection = [[-1, -1],
                      [-1, 1],
                      [1, -1],
                      [1, 1]]
@@ -112,8 +112,8 @@ class TTCEvaluator:
         for i in range(1,4):
             # Check 4 directions of movement
             for j in range(4):
-                newCol = col + i*movements[j][0]
-                newRow = row + i*movements[j][1]
+                newCol = col + i * movDirection[j][0]
+                newRow = row + i * movDirection[j][1]
 
                 # If I haven't found a piece yet in this direction and its inside the board
                 if not diagEncounteredPiece[j] and self.__isInsideBoard(newRow, newCol):
@@ -155,6 +155,43 @@ class TTCEvaluator:
                 validMovements.append((newRow, newCol))
 
         return validMovements
+
+    def __getRookValidMovements(self, position, board):
+        validMovements = []
+
+        row = position[0]
+        col = position[1]
+
+        # Checks whether or not I have found a piece in this direction
+        # 0 - Up
+        # 1 - Right
+        # 2 - Down
+        # 3 - Left
+        dirPieceEncountered = [False] * 4
+
+        # Describe the direction of movement for the rook
+        # The order is the same as described above
+        movDirection = [[-1, 0],
+                        [0, 1],
+                        [1, 0],
+                        [0, -1]]
+        
+        # The rook can move maximum 3 squares
+        for i in range(1, 4):
+            # Loop through all possible movements
+            for j in range(4):
+                newRow = row + i * movDirection[j][0]
+                newCol = col + i * movDirection[j][1]
+
+                if not dirPieceEncountered[j] and self.__isInsideBoard(newRow, newCol):
+                    if board[newRow][newCol] != 0:
+                        if not self.__sameSign(board[newRow][newCol], board[row][col]):
+                            validMovements.append((newRow, newCol))
+                        dirPieceEncountered[j] = True
+                    else:
+                        validMovements.append((newRow, newCol))
+
+        return validMovements        
 
 
     def __getValidMovements(self, pieceCode, position, board, color):
