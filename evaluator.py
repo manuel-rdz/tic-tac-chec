@@ -193,7 +193,6 @@ class TTCEvaluator:
 
         return validMovements        
 
-
     def __getValidMovements(self, pieceCode, position, board, color):
         if pieceCode == 1:
             return self.__getPawnValidMovements(position, board, color)
@@ -203,7 +202,6 @@ class TTCEvaluator:
             return self.__getKnightValidMovements(position, board)
         else:
             return self.__getRookValidMovements(position, board)
-
 
     def __compareWithBoardsWithNewPiece(self, pieceCode, oldBoard, newBoard):
         for i in range(4):
@@ -237,7 +235,6 @@ class TTCEvaluator:
         oldBoard[row][col] = pieceCode
         return False
 
-
     def __wasValidMove(self, oldBoard, newBoard, color):
         pieces = [None] * 5
 
@@ -247,16 +244,41 @@ class TTCEvaluator:
                 if self.__sameSign(oldBoard[i][j], color):
                     pieces[abs(oldBoard[i][j])] = (i, j)
 
-
+        wasBoardFound = False
         for i in range(1, len(pieces)):
             if pieces[i] is not None:
-                self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, color)
+                wasBoardFound = self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, color)
             else:
-                self.__compareWithBoardsWithNewPiece(i, oldBoard, newBoard)
+                wasBoardFound = self.__compareWithBoardsWithNewPiece(i, oldBoard, newBoard)
+
+            if wasBoardFound:
+                return True
             
+        return False
+
+    # Function to check whether a movement was a capture or not
+    # For a movement to be classified as a capture, 2 conditions have to occur
+    # 1. Only 2 squares changed value
+    # 2. One square has to change from used to empty and the other from used to used with different color    
+    def __wasCapture(self, oldBoard, newBoard, color):
+        changedSquares = []
+
+        for i in range(4):
+            for j in range(4):
+                if oldBoard[i][j] != newBoard[i][j]:
+                    changedSquares.append((i, j))
+
+        if len(changedSquares) != 2:
+            return False
+        
+        def areChangesFromCapture(row1, col1, row2, col2):
+            return (newBoard[row1][col1] == 0 and newBoard[row2][col2] == oldBoard[row1][col1])
+        
+        return (areChangesFromCapture(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
+                or areChangesFromCapture(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
 
 
-    def __isWinPosition(self, board, player):
+    def __isWinningPosition(self, board, player):
         pass
 
     def __reverseBoard(self, board):
@@ -266,14 +288,18 @@ class TTCEvaluator:
         newBoard = self.player.play(self.board)
         
         if self.__wasValidMove(self.board, newBoard, color):
-            pass
+            if self.__wasCapture(self.board, newBoard, color):
+                pass
         else:
             print(player.name, "made an illegal move. Loses automatically")
+            print(self.board)
+            print(newBoard)
+
             return False
 
     def __startGame(self):
         while self.currentTurn < self.maxTurns:
-            self.__playTurn()
+            self.__playTurn(self.whitePlayer)
 
     def runAnalysis(self, noGames, maxCaptures, maxTurns):
         self.maxCaptures = maxCaptures
