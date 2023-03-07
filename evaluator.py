@@ -46,9 +46,9 @@ class PlayerWrapper:
 
 
 class TTCEvaluator:
-    def __init__(self, whitePlayer, blackPlayer):
-        self.whitePlayer = whitePlayer
-        self.blackPlayer = blackPlayer
+    def __init__(self):
+        self.whitePlayer = None
+        self.blackPlayer = None
 
         self.currentTurn = 0
         self.maxCaptures = 0
@@ -323,8 +323,9 @@ class TTCEvaluator:
         
         return False
 
-    def __reverseBoard(self, board):
-        pass
+    # Rotate board 90 degrees anti-clockwise
+    def __rotateBoard(self, board):
+        return [[board[j][i] for j in range(len(board))] for i in range(len(board[0])-1,-1,-1)]
 
     def __playTurn(self, player):
         newBoard = self.player.player.play(self.board)
@@ -355,6 +356,8 @@ class TTCEvaluator:
                 return self.WIN
 
             self.__updatePawnDirection(newBoard, player)
+            # Update board
+            self.board = newBoard
             return self.CONTINUE
 
         else:
@@ -378,6 +381,8 @@ class TTCEvaluator:
                 self.whitePlayer.statistics['loses'] += 1
                 return
             
+            # Rotate board so the player has the correct face.
+            self.board = self.__rotateBoard(self.board)
             resultBlack = self.__playTurn(self.blackPlayer)
 
             if resultBlack == self.WIN:
@@ -390,27 +395,28 @@ class TTCEvaluator:
                 return
             
             self.currentTurn += 1
+            # Rotate board so the player has the correct face.
+            self.board = self.__rotateBoard(self.board)
 
         self.blackPlayer.statistics['draws'] += 1
         self.whitePlayer.statistics['draws'] += 1
 
+    def __initializeGame(self, noGame):
+        self.board = [[0] * 4 for _ in range(4)]
+        self.currentTurn = 0
+
+        # Here we have to turn the players
+        self.whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]), 1)
+        self.blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]), -1)
 
 
     def runAnalysis(self, noGames, maxCaptures, maxTurns):
         self.maxCaptures = maxCaptures
         self.maxTurns = maxTurns
 
-        self.board = [[0] * 4 for _ in range(4)]
-
-        for _ in range(noGames):
+        for i in range(noGames):
+            self.__initializeGame()
             self.__startGame()
 
 
-
-whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]), 1)
-blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]), -1)
-
-evaluator = TTCEvaluator(whitePlayer, blackPlayer)
-
-#evaluator.runAnalysis(100, 8, 150)
-print([10, 11, 2, 3, 4] * -1)
+evaluator = TTCEvaluator()
