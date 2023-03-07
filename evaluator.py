@@ -36,6 +36,13 @@ class Errors:
     @staticmethod
     def UnknownPiece(self):
         return self.UNKNOWN_PIECE
+    
+
+class PlayerWrapper:
+    def __init__(self, player):
+        self.player = player
+        self.captures = 0
+        self.pawnDirection = -1
 
 
 class TTCEvaluator:
@@ -44,13 +51,6 @@ class TTCEvaluator:
         self.blackPlayer = blackPlayer
 
         self.currentTurn = 0
-        self.whiteCaptures = 0
-        self.blackCaptures = 0
-        
-        # Hacia arriba
-        self.whitePawnDirection = -1
-        self.blackPawnDirection = -1
-
         self.maxCaptures = 0
         self.maxTurns = 0
         self.board = None
@@ -285,11 +285,22 @@ class TTCEvaluator:
         pass
 
     def __playTurn(self, player, captures, color):
-        newBoard = self.player.play(self.board)
+        newBoard = self.player.player.play(self.board)
         
         if self.__wasValidMove(self.board, newBoard, color):
             if self.__wasCapture(self.board, newBoard, color):
-                pass
+                player.captures += 1
+
+                # Check if player made a capture on the first 3 moves
+                if self.currentTurn < 2:
+                    print(player.player.name, "made a capture on the first 3 moves. Loses automatically")
+                    return False
+                
+                # Check if player has exceeded the maximum number of captures allowed
+                if player.captures > self.maxCaptures:
+                    print(player.player.name, "exceeded the limit of captures. Loses automatically")
+                    return False
+            
         else:
             print(player.name, "made an illegal move. Loses automatically")
             print(self.board)
@@ -312,8 +323,8 @@ class TTCEvaluator:
 
 
 
-whitePlayer = TTCPlayer([10, 2, 3, 4])
-blackPlayer = TTCPlayer([-10, -2, -3, -4])
+whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]))
+blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]))
 
 evaluator = TTCEvaluator(whitePlayer, blackPlayer)
 
