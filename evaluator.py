@@ -27,23 +27,22 @@ The set of rules that this evaluator checks are as follows:
 
 """
 from module import TTCPlayer
-
-class Errors:
-    def __init__(self):
-        self.UNKNOWN_PIECE = "There is an unknown piece on the board"
-        self.REPEATED_PIECE = "There is a piece that appears more than once on the board"
-
-    @staticmethod
-    def UnknownPiece(self):
-        return self.UNKNOWN_PIECE
     
-
 class PlayerWrapper:
     def __init__(self, player, piecesColor):
         self.player = player
         self.captures = 0
         self.pawnDirection = -1
         self.piecesColor = piecesColor
+
+        statistics = {
+            'wins': 0,
+            'loses': 0,
+            'draws': 0,
+            'invalid_moves': 0,
+            'early_captures': 0,
+            'exceed_max_captures': 0,
+        }
 
 
 class TTCEvaluator:
@@ -55,6 +54,11 @@ class TTCEvaluator:
         self.maxCaptures = 0
         self.maxTurns = 0
         self.board = None
+
+        self.WIN = 1
+        self.LOSE = -1
+        self.CONTINUE = 0
+
         
     def __sameSign(a, b):
         return ((a < 0 and b < 0) or (a > 0  and b > 0))
@@ -62,8 +66,14 @@ class TTCEvaluator:
     def __isInsideBoard(row, col):
         return (row >= 0 and row < 4 and col >= 0 and col < 4)
 
-    def __updatePawnDirection(self, board, color):
-        pass
+    def __updatePawnDirection(self, board, player):
+        # If the pawn is in the limit of the board, it should reverse
+        if player.piecesColor in board[0]:
+            player.pawnDirection = 1
+        
+        # If the pawn is in the start of the board, it should go forward
+        if player.piecesColor in board[3]:
+            player.pawnDirection = -1
 
     def __getPawnValidMovements(self, position, board, pawnDirection):
         validMovements = []
@@ -326,26 +336,65 @@ class TTCEvaluator:
                 # Check if player made a capture on the first 3 moves
                 if self.currentTurn < 2:
                     print(player.player.name, "made a capture on the first 3 moves. Loses automatically")
-                    return False
+                    player.statistics['early_captures'] += 1
+                    print(self.board)
+                    print(newBoard)
+                    return self.LOSE
                 
                 # Check if player has exceeded the maximum number of captures allowed
                 if player.captures > self.maxCaptures:
+                    player.statistics['exceed_max_captures'] += 1
                     print(player.player.name, "exceeded the limit of captures. Loses automatically")
-                    return False
+                    print(self.board)
+                    print(newBoard)
+                    return self.LOSE
 
             if self.__isWinningPosition(newBoard, player.piecesColor):
-                pass
-            
+                print(player.player.name, " wins!")
+                print(newBoard)
+                return self.WIN
+
+            self.__updatePawnDirection(newBoard, player)
+            return self.CONTINUE
+
         else:
             print(player.name, "made an illegal move. Loses automatically")
+            player.statistics['invalid_moves'] += 1
             print(self.board)
             print(newBoard)
 
-            return False
+            return self.LOSE
 
     def __startGame(self):
         while self.currentTurn < self.maxTurns:
-            self.__playTurn(self.whitePlayer)
+            resultWhite = self.__playTurn(self.whitePlayer)
+
+            if resultWhite == self.WIN:
+                self.whitePlayer.statistics['wins'] += 1
+                self.blackPlayer.statistics['loses'] += 1
+                return
+            elif resultWhite == self.LOSE:
+                self.blackPlayer.statistics['wins'] += 1
+                self.whitePlayer.statistics['loses'] += 1
+                return
+            
+            resultBlack = self.__playTurn(self.blackPlayer)
+
+            if resultBlack == self.WIN:
+                self.blackPlayer.statistics['wins'] += 1
+                self.whitePlayer.statistics['loses'] += 1
+                return
+            elif resultBlack == self.LOSE:
+                self.whitePlayer.statistics['wins'] += 1
+                self.blackPlayer.statistics['loses'] += 1
+                return
+            
+            self.currentTurn += 1
+
+        self.blackPlayer.statistics['draws'] += 1
+        self.whitePlayer.statistics['draws'] += 1
+
+
 
     def runAnalysis(self, noGames, maxCaptures, maxTurns):
         self.maxCaptures = maxCaptures
@@ -353,13 +402,13 @@ class TTCEvaluator:
 
         self.board = [[0] * 4 for _ in range(4)]
 
-        for i in range(noGames):
+        for _ in range(noGames):
             self.__startGame()
 
 
 
-whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]))
-blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]))
+whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]), 1)
+blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]), -1)
 
 evaluator = TTCEvaluator(whitePlayer, blackPlayer)
 
