@@ -327,9 +327,17 @@ class TTCEvaluator:
         
         return False
 
-    # Rotate board 90 degrees anti-clockwise
+    # Rotate board 180 degrees
     def __rotateBoard(self, board):
-        return [[board[j][i] for j in range(len(board))] for i in range(len(board[0])-1,-1,-1)]
+        N = len(board)
+        # rotate the matrix by 180 degrees
+        for i in range(N // 2):
+            for j in range(N):
+                temp = board[i][j]
+                board[i][j] = board[N - i - 1][N - j - 1]
+                board[N - i - 1][N - j - 1] = temp
+        
+        return board
 
     def __playTurn(self, player):
         newBoard = self.player.player.play(self.board)

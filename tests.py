@@ -532,8 +532,105 @@ class TestEvaluator(unittest.TestCase):
 
         for i in range(len(results)):
             ans = eval._TTCEvaluator__wasCapture(oldBoards[i], newBoards[i])
-            print(i, ans)
             self.assertEqual(ans, results[i])
+
+    def test_isWinningPosition(self):
+        eval = TTCEvaluator()
+        boards = [ 
+                   [[1,0, 0, -2],
+                    [0,2, -3, 0],
+                    [0,-4, 3, 0],
+                    [0, 0, -1,4]],
+
+                    [[-4,0, 0, 0],
+                     [0,-2,1,-1],
+                     [0,0, -3, 0],
+                     [0,2, 0, 4]],
+
+                    [[ 1, 2, 4,0],
+                     [ 0,-1, 0,0],
+                     [-2, 0, 0,0],
+                     [ 0, 3, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [-3,0,-1,0],
+                     [ 0,0, 0,0],
+                     [ 2,4, 1,3]],
+
+                    [[0, 1, 0,-2],
+                     [0, 0,-3,0],
+                     [0,-4, 0,0],
+                     [-1, 0, 4,0]],
+
+                    [[ 0, 0, 2,0],
+                     [-4, 0, 3,0],
+                     [ 0,-2, 4,0],
+                     [-1, 0, 1,0]],
+
+                    [[1, 2, 0,0],
+                     [0,-2,-1,0],
+                     [0, 2,-3,0],
+                     [0, 3,-4,4]]
+                   ]
+        
+        results = [True, False, False, True, True, True, False]
+        piecesColor = [1, -1, 1, 1, -1, 1, 1]
+
+        for i in range(len(results)):
+            ans = eval._TTCEvaluator__isWinningPosition(boards[i], piecesColor[i])
+            self.assertEqual(ans, results[i])
+
+    def test_rotateBoard(self):
+        eval = TTCEvaluator()
+
+        boards = [ 
+                   [[4, -1, 0, 0],
+                   [0, 3, -4, 0],
+                   [0, -3, 2, 0],
+                   [-2, 0, 0, 1]],
+
+                    [[-4,0, 0, 0],
+                     [0,-2,1,-1],
+                     [0,0, -3, 0],
+                     [0,2, 0, 4]],
+
+                    [[ 1, 2, 4,0],
+                     [ 0,-1, 0,0],
+                     [-2, 0, 0,0],
+                     [ 0, 3, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [-3,0,-1,0],
+                     [ 0,0, 0,0],
+                     [ 2,4, 1,3]],
+                   ]
+        
+        results = [ 
+                   [[1,0,0,-2],
+                    [0, 2,-3,0],
+                    [0, -4,3,0],
+                    [0,0,-1,4]],
+
+                    [[4,0,2,0],
+                     [0,-3,0,0],
+                     [-1,1,-2,0],
+                     [0,0,0,-4]],
+
+                    [[0,0,3,0],
+                     [ 0,0,0,-2],
+                     [0,0,-1,0],
+                     [0,4,2,1]],
+                     
+                    [[3,1,4,2],
+                     [0,0,0,0],
+                     [0,-1,0,-3],
+                     [0,-4,0,0]],
+                   ]
+        
+        for i in range(len(results)):
+            ans = eval._TTCEvaluator__rotateBoard(boards[i])
+            self.assertEqual(ans, results[i])
+        
 
 if __name__ == '__main__':
     unittest.main()
