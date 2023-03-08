@@ -267,8 +267,100 @@ class TestEvaluator(unittest.TestCase):
             ans = eval._TTCEvaluator__compareWithBoardsWithNewPiece(piecesCode[i], oldBoards[i], newBoards[i])
             self.assertEqual(ans, result[i])
 
-    def test___compareWithBoardsWithMovement(self):
+    def test_compareWithBoardsWithMovement(self):
+        eval = TTCEvaluator()
+
+        oldBoards = [ 
+                   [[1, 0, 0, 0],
+                    [0,-3, 0, 0],
+                    [0, 4, 0, 0],
+                    [0, 0, 0,-1]],
+
+                    [[0,0, 0, 0],
+                     [0,3,-4,-1],
+                     [0,0, 0, 0],
+                     [0,0, 0, 4]],
+
+                    [[ 0, 2,-4,0],
+                     [ 0,-1, 0,0],
+                     [-2, 1, 4,0],
+                     [ 0, 3, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [-3,0,-1,0],
+                     [ 0,1, 0,0],
+                     [ 0,0, 3,0]],
+
+                    [[0, 0, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]],
+
+                    [[0, 0, 0,0],
+                     [4, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]],
+
+                    [[0, 2, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 3, 4,0]]
+                   ]
+        newBoards = [ 
+                   [[0, 0, 0, 0],
+                    [1,-3, 0, 0],
+                    [0, 4, 0, 0],
+                    [0, 0, 0,-1]],
+
+                    [[0,0, 0, 0],
+                     [0,-4,0,-1],
+                     [0,0, 0, 0],
+                     [0,0, 0, 4]],
+
+                    [[ 0, 2,-4,0],
+                     [ 0,-1, 3,0],
+                     [-2, 1, 4,0],
+                     [ 0, 0, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [ 1,0,-1,0],
+                     [ 0,0, 0,0],
+                     [ 0,0, 3,0]],
+
+                    [[0,0, 0,0],
+                     [0,0,-1,0],
+                     [0,0, 0,0],
+                     [1,0,-2,0]],
+
+                    [[0, 0, 3,0],
+                     [4, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]],
+
+                    [[0, 2, 0, 0],
+                     [0, 0,-1, 0],
+                     [0,-2, 0,-4],
+                     [1, 3, 4, 0]]
+                   ]
         
+        piecesCodes = [1, -4, 3, 1, -2, 4, -1]
+        positions = [(0,0), (1, 2), (3, 1), (2, 1), (2, 1), (1, 0), (1, 2)]
+        players = [PlayerWrapper(TTCPlayer([1,2,3,4]), 1), 
+                   PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(TTCPlayer([1,2,3,4]), 1),
+                   PlayerWrapper(TTCPlayer([1,2,3,4]), 1),
+                   PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(TTCPlayer([1,2,3,4]), 1),
+                   PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),]
+        results = [True, True, True, True, True, False, False]
+        
+        players[0].pawnDirection = 1
+
+        for i in range(len(piecesCodes)):
+            ans = eval._TTCEvaluator__compareWithBoardsWithMovement(piecesCodes[i], positions[i], oldBoards[i], newBoards[i], players[i])
+            self.assertEqual(ans, results[i])
+
+
 
 if __name__ == '__main__':
     unittest.main()

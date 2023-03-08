@@ -204,14 +204,17 @@ class TTCEvaluator:
         return validMovements        
 
     def __getValidMovements(self, pieceCode, position, board, player):
-        if pieceCode == 1:
+        if abs(pieceCode) == 1:
             return self.__getPawnValidMovements(position, board, player.pawnDirection)
-        elif pieceCode == 2:
+        elif abs(pieceCode) == 2:
             return self.__getBishopValidMovements(position, board)
-        elif pieceCode == 3:
+        elif abs(pieceCode) == 3:
             return self.__getKnightValidMovements(position, board)
-        else:
+        elif abs(pieceCode) == 4:
             return self.__getRookValidMovements(position, board)
+        else:
+            print("Piece ", pieceCode, " not recognized")
+            return []
 
     def __compareWithBoardsWithNewPiece(self, pieceCode, oldBoard, newBoard):
         for i in range(4):
@@ -228,7 +231,6 @@ class TTCEvaluator:
     
     def __compareWithBoardsWithMovement(self, pieceCode, position, oldBoard, newBoard, player):
         validMovementsSquares = self.__getValidMovements(pieceCode, position, oldBoard, player)
-
         row = position[0]
         col = position[1]
 
@@ -257,9 +259,9 @@ class TTCEvaluator:
         wasBoardFound = False
         for i in range(1, len(pieces)):
             if pieces[i] is not None:
-                wasBoardFound = self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, player)
+                wasBoardFound = self.__compareWithBoardsWithMovement(i * player.piecesColor, pieces[i], oldBoard, newBoard, player)
             else:
-                wasBoardFound = self.__compareWithBoardsWithNewPiece(i, oldBoard, newBoard)
+                wasBoardFound = self.__compareWithBoardsWithNewPiece(i * player.piecesColor, oldBoard, newBoard)
 
             if wasBoardFound:
                 return True
