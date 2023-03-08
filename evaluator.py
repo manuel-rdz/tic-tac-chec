@@ -60,10 +60,10 @@ class TTCEvaluator:
         self.CONTINUE = 0
 
         
-    def __sameSign(a, b):
+    def __sameSign(self, a, b):
         return ((a < 0 and b < 0) or (a > 0  and b > 0))
     
-    def __isInsideBoard(row, col):
+    def __isInsideBoard(self, row, col):
         return (row >= 0 and row < 4 and col >= 0 and col < 4)
 
     def __updatePawnDirection(self, board, player):
@@ -245,19 +245,19 @@ class TTCEvaluator:
         oldBoard[row][col] = pieceCode
         return False
 
-    def __wasValidMove(self, oldBoard, newBoard, color):
+    def __wasValidMove(self, oldBoard, newBoard, player):
         pieces = [None] * 5
 
         # No puede haber errores porque es el tablero antiguo
         for i in range(4):
             for j in range(4):
-                if self.__sameSign(oldBoard[i][j], color):
+                if self.__sameSign(oldBoard[i][j], player.piecesColor):
                     pieces[abs(oldBoard[i][j])] = (i, j)
 
         wasBoardFound = False
         for i in range(1, len(pieces)):
             if pieces[i] is not None:
-                wasBoardFound = self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, color)
+                wasBoardFound = self.__compareWithBoardsWithMovement(i, pieces[i], oldBoard, newBoard, player)
             else:
                 wasBoardFound = self.__compareWithBoardsWithNewPiece(i, oldBoard, newBoard)
 
@@ -330,7 +330,7 @@ class TTCEvaluator:
     def __playTurn(self, player):
         newBoard = self.player.player.play(self.board)
         
-        if self.__wasValidMove(self.board, newBoard, player.piecesColor):
+        if self.__wasValidMove(self.board, newBoard, player):
             if self.__wasCapture(self.board, newBoard):
                 player.captures += 1
 
