@@ -284,7 +284,9 @@ class TTCEvaluator:
             return False
         
         def areChangesFromCapture(row1, col1, row2, col2):
-            return (newBoard[row1][col1] == 0 and newBoard[row2][col2] == oldBoard[row1][col1])
+            return (newBoard[row1][col1] == 0
+                    and oldBoard[row2][col2] != 0 
+                    and newBoard[row2][col2] == oldBoard[row1][col1])
         
         return (areChangesFromCapture(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
                 or areChangesFromCapture(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
