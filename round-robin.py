@@ -26,28 +26,28 @@ class RoundRobin:
             }
     
     def __fillStatistics(self, stats1, stats2):
-        if stats1.wins > stats2.wins:
-            self.playerStatistics[stats1.name]['won_match'] += 1
-        elif stats2.wins > stats1.win:
-            self.playerStatistics[stats1.name]['lost_match'] += 1
+        if stats1['wins'] > stats2['wins']:
+            self.playerStatistics[stats1['name']]['won_match'] += 1
+        elif stats2['wins'] > stats1['wins']:
+            self.playerStatistics[stats1['name']]['lost_match'] += 1
         else:
-            self.playerStatistics[stats1.name]['drew_match'] += 1
+            self.playerStatistics[stats1['name']]['drew_match'] += 1
 
-        self.playersStatistics[stats1.name]['won_games']+= stats1.wins
-        self.playersStatistics[stats1.name]['drew_games'] += stats1.draws
-        self.playersStatistics[stats1.name]['lost_games'] += stats1.loses
+        self.playersStatistics[stats1['name']]['won_games']+= stats1['wins']
+        self.playersStatistics[stats1['name']]['drew_games'] += stats1['draws']
+        self.playersStatistics[stats1['name']]['lost_games'] += stats1['loses']
 
-        self.playersStatistics[stats1.name]['invalid_moves'] += stats1.invalid_moves
-        self.playersStatistics[stats1.name]['early_captures'] += stats1.early_captures
-        self.playersStatistics[stats1.name]['max_captures_exceeded'] += stats1.exceed_max_captures
+        self.playersStatistics[stats1['name']]['invalid_moves'] += stats1['invalid_moves']
+        self.playersStatistics[stats1['name']]['early_captures'] += stats1['early_captures']
+        self.playersStatistics[stats1['name']]['max_captures_exceeded'] += stats1['exceed_max_captures']
 
-        if self.playersStatistics[stats1.name]['best_won_games'] < stats1['wins']:
-            self.playersStatistics[stats1.name]['best_won_games'] = stats1['wins']
-            self.playersStatistics[stats1.name]['best_against'] = stats2['name']
+        if self.playersStatistics[stats1['name']]['best_won_games'] < stats1['wins']:
+            self.playersStatistics[stats1['name']]['best_won_games'] = stats1['wins']
+            self.playersStatistics[stats1['name']]['best_against'] = stats2['name']
 
-        if self.playersStatistics[stats1.name]['worst_won_games'] > stats1['wins']:
-            self.playersStatistics[stats1.name]['worst_won_games'] = stats1['wins']
-            self.playersStatistics[stats1.name]['worst_against'] = stats2['name']
+        if self.playersStatistics[stats1['name']]['worst_won_games'] > stats1['wins']:
+            self.playersStatistics[stats1['name']]['worst_won_games'] = stats1['wins']
+            self.playersStatistics[stats1['name']]['worst_against'] = stats2['name']
 
     def __compareLeaderBoard(self, a, b):
         for i in len(a):
