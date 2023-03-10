@@ -1,7 +1,7 @@
 import unittest
 
 from evaluator import TTCEvaluator, PlayerWrapper
-from module import TTCPlayer
+from player import TTCPlayer
 
 class MockTTCPlayer:
     def __init__(self, valuesCode):

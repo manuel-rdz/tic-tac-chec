@@ -18,3 +18,6 @@ class TTCPlayer:
 
     def play(self, world):
         pass
+
+    def reset(self):
+        pass

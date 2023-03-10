@@ -26,7 +26,7 @@ The set of rules that this evaluator checks are as follows:
     8. There is a limit of turns that can be played. If that limit is reached and no player has won, the game would be considered a draw.
 
 """
-from module import TTCPlayer
+from player import TTCPlayer
     
 class PlayerWrapper:
     def __init__(self, player, piecesColor):
@@ -36,6 +36,7 @@ class PlayerWrapper:
         self.piecesColor = piecesColor
 
         self.statistics = {
+            'name': self.player.name,
             'wins': 0,
             'loses': 0,
             'draws': 0,
@@ -43,6 +44,13 @@ class PlayerWrapper:
             'early_captures': 0,
             'exceed_max_captures': 0,
         }
+
+    def resetValues(self, color):
+        self.player.reset()
+        self.captures = 0
+        self.pawnDirection = -1
+        self.piecesColor = color
+
 
 
 class TTCEvaluator:
@@ -426,22 +434,31 @@ class TTCEvaluator:
         self.blackPlayer.statistics['draws'] += 1
         self.whitePlayer.statistics['draws'] += 1
 
-    def __initializeGame(self, noGame):
+    def __initializeGame(self):
         self.board = [[0] * 4 for _ in range(4)]
         self.currentTurn = 0
 
-        # Here we have to turn the players
-        self.whitePlayer = PlayerWrapper(TTCPlayer([10, 2, 3, 4]), 1)
-        self.blackPlayer = PlayerWrapper(TTCPlayer([-10, -2, -3, -4]), -1)
+        # Swap all the info of the players
+        self.whitePlayer, self.blackPlayer = self.blackPlayer, self.whitePlayer
+
+        # Reset the values of players
+        self.whitePlayer.resetValues(1)
+        self.blackPlayer.resetValues(-1)
 
 
-    def runAnalysis(self, noGames, maxCaptures, maxTurns):
+    def runAnalysis(self, player1, player2, noGames, maxCaptures, maxTurns):
         self.maxCaptures = maxCaptures
         self.maxTurns = maxTurns
 
-        for i in range(noGames):
+        # We put them this way because initializeGame is going to swap them
+        self.blackPlayer = PlayerWrapper(player1, -1)
+        self.whitePlayer = PlayerWrapper(player2, 1)
+
+        for _ in range(noGames):
             self.__initializeGame()
             self.__startGame()
+
+        return self.whitePlayer.statistics, self.blackPlayer.statistics
 
 
 evaluator = TTCEvaluator()
