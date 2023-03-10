@@ -35,7 +35,7 @@ class PlayerWrapper:
         self.pawnDirection = -1
         self.piecesColor = piecesColor
 
-        statistics = {
+        self.statistics = {
             'wins': 0,
             'loses': 0,
             'draws': 0,
@@ -58,6 +58,16 @@ class TTCEvaluator:
         self.WIN = 1
         self.LOSE = -1
         self.CONTINUE = 0
+
+    def __printBoard(self, board):
+        print('-------')
+        for i in range(len(board)):
+            for j in range(len(board)):
+                if board[i][j] >= 0:
+                    print(' ', end='')
+                print(board[i][j], end='')
+            print()
+        print('-------')
 
         
     def __sameSign(self, a, b):
@@ -223,6 +233,7 @@ class TTCEvaluator:
                     oldBoard[i][j] = pieceCode
 
                     if oldBoard == newBoard:
+                        oldBoard[i][j] = 0
                         return True
                     
                     oldBoard[i][j] = 0
@@ -240,6 +251,8 @@ class TTCEvaluator:
             prevPiece = oldBoard[newSquare[0]][newSquare[1]]
             oldBoard[newSquare[0]][newSquare[1]] = pieceCode
             if oldBoard == newBoard:
+                oldBoard[newSquare[0]][newSquare[1]] = prevPiece
+                oldBoard[row][col] = pieceCode
                 return True
             
             oldBoard[newSquare[0]][newSquare[1]] = prevPiece
@@ -340,31 +353,31 @@ class TTCEvaluator:
         return board
 
     def __playTurn(self, player):
-        newBoard = self.player.player.play(self.board)
+        newBoard = player.player.play(self.board)
         
         if self.__wasValidMove(self.board, newBoard, player):
             if self.__wasCapture(self.board, newBoard):
                 player.captures += 1
 
                 # Check if player made a capture on the first 3 moves
-                if self.currentTurn < 2:
+                if self.currentTurn < 3:
                     print(player.player.name, "made a capture on the first 3 moves. Loses automatically")
                     player.statistics['early_captures'] += 1
-                    print(self.board)
-                    print(newBoard)
+                    self.__printBoard(self.board)
+                    self.__printBoard(newBoard)
                     return self.LOSE
                 
                 # Check if player has exceeded the maximum number of captures allowed
                 if player.captures > self.maxCaptures:
                     player.statistics['exceed_max_captures'] += 1
                     print(player.player.name, "exceeded the limit of captures. Loses automatically")
-                    print(self.board)
-                    print(newBoard)
+                    self.__printBoard(self.board)
+                    self.__printBoard(newBoard)
                     return self.LOSE
 
             if self.__isWinningPosition(newBoard, player.piecesColor):
                 print(player.player.name, " wins!")
-                print(newBoard)
+                self.__printBoard(newBoard)
                 return self.WIN
 
             self.__updatePawnDirection(newBoard, player)
@@ -373,10 +386,10 @@ class TTCEvaluator:
             return self.CONTINUE
 
         else:
-            print(player.name, "made an illegal move. Loses automatically")
+            print(player.player.name, "made an illegal move. Loses automatically")
             player.statistics['invalid_moves'] += 1
-            print(self.board)
-            print(newBoard)
+            self.__printBoard(self.board)
+            self.__printBoard(newBoard)
 
             return self.LOSE
 

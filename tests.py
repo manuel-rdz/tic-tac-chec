@@ -3,6 +3,18 @@ import unittest
 from evaluator import TTCEvaluator, PlayerWrapper
 from module import TTCPlayer
 
+class MockTTCPlayer:
+    def __init__(self, valuesCode):
+        self.name = "Juanito"
+        self.mockWorld = None
+
+    def setMockWorld(self, mockWorld):
+        self.mockWorld = mockWorld
+
+    def play(self, world):
+        return self.mockWorld
+    
+
 class TestEvaluator(unittest.TestCase):
     def test_updatePawnDirectionWhite(self):
         eval = TTCEvaluator()
@@ -397,7 +409,12 @@ class TestEvaluator(unittest.TestCase):
                     [[0, 2, 0,0],
                      [0, 0,-1,0],
                      [0,-2, 0,0],
-                     [1, 3, 4,0]]
+                     [1, 3, 4,0]],
+
+                    [[0, 2, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]]
                    ]
         newBoards = [ 
                    [[1, 0, 2, 0],
@@ -433,7 +450,12 @@ class TestEvaluator(unittest.TestCase):
                     [[0, 2, 0, 0],
                      [0, 0, 0, 0],
                      [0,-2, 0,-1],
-                     [1, 3, 4, 0]]
+                     [1, 3, 4, 0]],
+
+                    [[0, 2, 0,0],
+                     [4, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]]
                    ]
 
         players = [PlayerWrapper(TTCPlayer([1,2,3,4]), 1), 
@@ -442,11 +464,12 @@ class TestEvaluator(unittest.TestCase):
                    PlayerWrapper(TTCPlayer([1,2,3,4]), 1),
                    PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),
                    PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),
-                   PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1)]
+                   PlayerWrapper(TTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(TTCPlayer([1,2,3,4]), 1)]
         
         players[-1].pawnDirection = 1
 
-        results = [True, False, False, True, True, True, False]
+        results = [True, False, False, True, True, True, False, False]
 
         for i in range(len(results)):
             ans = eval._TTCEvaluator__wasValidMove(oldBoards[i], newBoards[i], players[i])
@@ -630,7 +653,132 @@ class TestEvaluator(unittest.TestCase):
         for i in range(len(results)):
             ans = eval._TTCEvaluator__rotateBoard(boards[i])
             self.assertEqual(ans, results[i])
+    
+    # test validMove, capture, capture < 2, capture > max, winning position, 
+    def test_playTurn(self):
+        # 0 valid move d
+        # 1 valid capture d
+        # 2 early capture d
+        # 3 winning d
+        # 4 invalid new piece 
+        # 5 capture > maxCapture
+        # 6 new piece
+        # 7 invalid move
+        turns = [10,10,1,10,10,10,10,10]
+        maxCaptures = [7,7,7,7,7,3,7,7]
+
+        oldBoards = [ 
+                   [[1, 0, 0, 0],
+                    [0,-3, 0, 0],
+                    [0, 4, 0, 0],
+                    [0, 0, 0,-1]],
+
+                    [[0,0, 0, 0],
+                     [0,3,-4,-1],
+                     [0,0, 0, 0],
+                     [0,0, 0, 4]],
+
+                    [[ 0, 2,-4,0],
+                     [ 0,-1, 0,0],
+                     [-2, 1, 4,0],
+                     [ 0, 3, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [-3,0,-1,0],
+                     [ 0,3, 0,0],
+                     [ 1,2, 4,0]],
+
+                    [[0, 0, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]],
+
+                    [[0, 0, 0,0],
+                     [4, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, -4,0]],
+
+                    [[0, 2, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 3, 4,0]],
+
+                    [[0, 2, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0, 4,0]]
+                   ]
+        newBoards = [ 
+                   [[0, 0, 0, 0],
+                    [1,-3, 0, 0],
+                    [0, 4, 0, 0],
+                    [0, 0, 0,-1]],
+
+                    [[0,0, 0, 0],
+                     [0,-4,0,-1],
+                     [0,0, 0, 0],
+                     [0,0, 0, 4]],
+
+                    [[ 0, 2,4,0],
+                     [ 0,-1, 0,0],
+                     [-2, 1, 0,0],
+                     [ 0, 3, 0,0]],
+                     
+                    [[ 0,0,-4,0],
+                     [-3,0,-1,0],
+                     [ 0,0, 0,0],
+                     [ 1,2, 4,3]],
+
+                    [[0, 0, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 0,-3,0]],
+
+                    [[0, 0, 0,0],
+                     [4, 0,-1,0],
+                     [0,-2, 0,0],
+                     [-4, 0,0,0]],
+
+                    [[0, 2, 0,-3],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [1, 3, 4,0]],
+
+                    [[0, 2, 0,0],
+                     [0, 0,-1,0],
+                     [0,-2, 0,0],
+                     [4, 0, 0,0]]
+                   ]
+
+        players = [PlayerWrapper(MockTTCPlayer([1,2,3,4]), 1), 
+                   PlayerWrapper(MockTTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(MockTTCPlayer([1,2,3,4]), 1),
+                   PlayerWrapper(MockTTCPlayer([1,2,3,4]), 1),
+                   PlayerWrapper(MockTTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(MockTTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(MockTTCPlayer([-1,-2,-3,-4]), -1),
+                   PlayerWrapper(MockTTCPlayer([1,2,3,4]), 1)]
         
+        playersCaptures = [1,6,0,1,1,3,1,1]
+        playersPawnDirections = [1,-1,-1,-1,-1,-1,-1,-1]
+
+        results = [0, 0, -1, 1, -1, -1, 0, -1]
+
+        for i in range(len(results)):
+            eval = TTCEvaluator()
+            eval.maxCaptures = maxCaptures[i]
+            eval.currentTurn = turns[i]
+            eval.board = oldBoards[i]
+
+            players[i].captures = playersCaptures[i]
+            players[i].pawnDirection = playersPawnDirections[i]
+            players[i].player.setMockWorld(newBoards[i])
+
+            ans = eval._TTCEvaluator__playTurn(players[i])
+            self.assertEqual(ans, results[i])
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
