@@ -445,7 +445,6 @@ class TTCEvaluator:
         self.whitePlayer.resetValues(1)
         self.blackPlayer.resetValues(-1)
 
-
     def runAnalysis(self, player1, player2, noGames, maxCaptures, maxTurns):
         self.maxCaptures = maxCaptures
         self.maxTurns = maxTurns
