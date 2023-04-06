@@ -5,8 +5,13 @@ import shutil
 from evaluator import TTCEvaluator
 
 class RoundRobin:
-    def __init__(self, players):
+    def __init__(self, players, gamesPerMatch, maxCapturesPerGame, maxTurnsPerGame):
         self.players = players
+
+        self.gamesPerMatch = gamesPerMatch
+        self.maxCapturesPerGame = maxCapturesPerGame
+        self.maxTurnsPerGame = maxTurnsPerGame
+
         self.evaluator = TTCEvaluator()
         self.playerStatistics = {}
 
@@ -22,7 +27,7 @@ class RoundRobin:
                 "drew_games": 0,
                 "lost_games": 0,
                 "invalid_moves": 0,
-                "early_captures": 0,
+                "early_movements": 0,
                 "max_captures_exceeded": 0,
                 "best_against": "",
                 "best_won_games": 0,
@@ -38,26 +43,21 @@ class RoundRobin:
         else:
             self.playerStatistics[stats1['name']]['drew_match'] += 1
 
-        self.playersStatistics[stats1['name']]['won_games']+= stats1['wins']
-        self.playersStatistics[stats1['name']]['drew_games'] += stats1['draws']
-        self.playersStatistics[stats1['name']]['lost_games'] += stats1['loses']
+        self.playerStatistics[stats1['name']]['won_games']+= stats1['wins']
+        self.playerStatistics[stats1['name']]['drew_games'] += stats1['draws']
+        self.playerStatistics[stats1['name']]['lost_games'] += stats1['loses']
 
-        self.playersStatistics[stats1['name']]['invalid_moves'] += stats1['invalid_moves']
-        self.playersStatistics[stats1['name']]['early_captures'] += stats1['early_captures']
-        self.playersStatistics[stats1['name']]['max_captures_exceeded'] += stats1['exceed_max_captures']
+        self.playerStatistics[stats1['name']]['invalid_moves'] += stats1['invalid_moves']
+        self.playerStatistics[stats1['name']]['early_movements'] += stats1['early_movements']
+        self.playerStatistics[stats1['name']]['max_captures_exceeded'] += stats1['exceed_max_captures']
 
-        if self.playersStatistics[stats1['name']]['best_won_games'] < stats1['wins']:
-            self.playersStatistics[stats1['name']]['best_won_games'] = stats1['wins']
-            self.playersStatistics[stats1['name']]['best_against'] = stats2['name']
+        if self.playerStatistics[stats1['name']]['best_won_games'] < stats1['wins']:
+            self.playerStatistics[stats1['name']]['best_won_games'] = stats1['wins']
+            self.playerStatistics[stats1['name']]['best_against'] = stats2['name']
 
-        if self.playersStatistics[stats1['name']]['worst_won_games'] > stats1['wins']:
-            self.playersStatistics[stats1['name']]['worst_won_games'] = stats1['wins']
-            self.playersStatistics[stats1['name']]['worst_against'] = stats2['name']
-
-    def __compareLeaderBoard(self, a, b):
-        for i in len(a):
-            if a[i] != b[i]:
-                return a[i] > b[i]
+        if self.playerStatistics[stats1['name']]['worst_won_games'] > stats1['wins']:
+            self.playerStatistics[stats1['name']]['worst_won_games'] = stats1['wins']
+            self.playerStatistics[stats1['name']]['worst_against'] = stats2['name']
 
     def __createOrEmptyFolder(self, path, folderName):
         folderPath = os.path.join(path, folderName)
@@ -78,16 +78,16 @@ class RoundRobin:
                 self.playerStatistics[name]['drew_games']
                 ))
             
-        leaderboard = sorted(leaderboard, key=functools.cmp_to_key(self.__compareLeaderBoard))
+        leaderboard = sorted(leaderboard, key=lambda x: (x[1], x[2], x[3], x[4]), reverse=True)
         
-        with open(os.path.join(os.getcwd(), 'leaderboard.txt'), 'w') as fp:
+        with open(os.path.join(os.path.join(os.getcwd(), self.resultsFolderName), 'leaderboard.txt'), 'w') as fp:
             fp.write("Rank (name, won_matches, won_games, drew_matches, drew_games)\n")
-            for i in range(5):
+            for i in range(len(leaderboard)):
                 fp.write(str(i + 1) +" "+ str(leaderboard[i]) + "\n")
     
     def __createStatisticsPerPlayer(self):
         folderPath = os.path.join(os.path.join(os.getcwd(), self.resultsFolderName), 'players')
-        self.__createOrEmptyFolder(folderPath)
+        self.__createOrEmptyFolder(folderPath, self.resultsFolderName)
 
         for name in self.playerStatistics:
             with open(os.path.join(folderPath, name+'.txt'), 'w') as fp:
@@ -98,7 +98,7 @@ class RoundRobin:
 
         for i in range(len(self.players)):
             for j in range(i + 1, len(self.players)):
-                stats1, stats2 = self.evaluator.runAnalysis(self.players[i], self.players[j], 50, 5, 100)
+                stats1, stats2 = self.evaluator.runAnalysis(self.players[i], self.players[j], self.gamesPerMatch, self.maxCapturesPerGame, self.maxTurnsPerGame)
                 self.__fillStatistics(stats1, stats2)
                 self.__fillStatistics(stats2, stats1)
 

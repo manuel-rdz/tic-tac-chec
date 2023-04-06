@@ -14,7 +14,7 @@ The set of rules that this evaluator checks are as follows:
 
     3. A new piece can only be positioned on an empty square, it cannot capture pieces while entering the board.
 
-    4. For the first 3 turns, each player can only place new pieces on the board. In this initial stage, tha players cannot move or capture any piece that is already on the board.
+    4. For the first 3 turns, each player can only place new pieces on the board. In this initial stage, players cannot move or capture any piece that is already on the board.
 
     5. Starting on the 4th turn, the player can move or capture pieces from his/her opponent. When a piece is captured, it is returned to the owner, who can
     place it inmediately on his/her next turn.
@@ -27,6 +27,7 @@ The set of rules that this evaluator checks are as follows:
 
 """
 from player import TTCPlayer
+import copy
     
 class PlayerWrapper:
     def __init__(self, player, piecesColor):
@@ -41,12 +42,13 @@ class PlayerWrapper:
             'loses': 0,
             'draws': 0,
             'invalid_moves': 0,
-            'early_captures': 0,
+            'early_movements': 0,
             'exceed_max_captures': 0,
         }
 
     def resetValues(self, color):
         self.player.reset()
+        self.player.setColor(color)
         self.captures = 0
         self.pawnDirection = -1
         self.piecesColor = color
@@ -77,7 +79,6 @@ class TTCEvaluator:
             print()
         print('-------')
 
-        
     def __sameSign(self, a, b):
         return ((a < 0 and b < 0) or (a > 0  and b > 0))
     
@@ -289,11 +290,12 @@ class TTCEvaluator:
             
         return False
 
-    # Function to check whether a movement was a capture or not
+    # Function to check whether a movement was a movement or not
+    # If it was a movement, it also checks if it was a capture or not.
     # For a movement to be classified as a capture, 2 conditions have to occur
     # 1. Only 2 squares changed value
     # 2. One square has to change from used to empty and the other from used to used with different color    
-    def __wasCapture(self, oldBoard, newBoard):
+    def __wasPieceMovement(self, oldBoard, newBoard):
         changedSquares = []
 
         for i in range(4):
@@ -302,15 +304,24 @@ class TTCEvaluator:
                     changedSquares.append((i, j))
 
         if len(changedSquares) != 2:
-            return False
+            return False, False
         
         def areChangesFromCapture(row1, col1, row2, col2):
             return (newBoard[row1][col1] == 0
                     and oldBoard[row2][col2] != 0 
                     and newBoard[row2][col2] == oldBoard[row1][col1])
         
-        return (areChangesFromCapture(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
+        def areChangesFromMovement(row1, col1, row2, col2):
+            return (newBoard[row1][col1] == 0
+                    and newBoard[row2][col2] == oldBoard[row1][col1])
+        
+        wasMovement = (areChangesFromMovement(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
+                or areChangesFromMovement(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
+        
+        wasCapture = (areChangesFromCapture(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
                 or areChangesFromCapture(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
+
+        return (wasMovement, wasCapture)
 
     # Check if the position on the board is a winning position.
     # It checks all the rows, columns and both diagonals looking for 4-pieces in a row.
@@ -361,20 +372,27 @@ class TTCEvaluator:
         return board
 
     def __playTurn(self, player):
-        newBoard = player.player.play(self.board)
+        print("playTurn")
+        newBoard = copy.deepcopy(self.board)
+        newBoard = player.player.play(newBoard)
+
+        self.__printBoard(self.board)
+        self.__printBoard(newBoard)
         
         if self.__wasValidMove(self.board, newBoard, player):
-            if self.__wasCapture(self.board, newBoard):
-                player.captures += 1
-
-                # Check if player made a capture on the first 3 moves
+            wasMovement, wasCapture = self.__wasPieceMovement(self.board, newBoard)
+            if wasMovement:
+                # Check if player made a movement on the first 3 moves
                 if self.currentTurn < 3:
-                    print(player.player.name, "made a capture on the first 3 moves. Loses automatically")
-                    player.statistics['early_captures'] += 1
+                    print(player.player.name, "made a movement on the first 3 moves. Loses automatically")
+                    player.statistics['early_movements'] += 1
                     self.__printBoard(self.board)
                     self.__printBoard(newBoard)
                     return self.LOSE
-                
+            
+            if wasCapture:
+                player.captures += 1
+
                 # Check if player has exceeded the maximum number of captures allowed
                 if player.captures > self.maxCaptures:
                     player.statistics['exceed_max_captures'] += 1

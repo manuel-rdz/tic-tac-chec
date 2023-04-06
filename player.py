@@ -13,8 +13,11 @@ class TTCPlayer:
     # valuesCode is a list containing the value code that you must use to represent your pieces over the board. 
     # The sign of the value code will tell you if you are playing as white or black pieces.
     # The values are in the order: pawn, bishop, knight, rook
-    def __init__(self, valuesCode):
+    def __init__(self):
         self.name = "Juanito"
+
+    def setColor(self, color):
+        pass
 
     def play(self, world):
         pass
