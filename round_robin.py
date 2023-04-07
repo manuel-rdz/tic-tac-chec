@@ -26,6 +26,7 @@ class RoundRobin:
                 "won_games": 0,
                 "drew_games": 0,
                 "lost_games": 0,
+                "raised_errors": 0,
                 "invalid_moves": 0,
                 "early_movements": 0,
                 "max_captures_exceeded": 0,
@@ -47,6 +48,7 @@ class RoundRobin:
         self.playerStatistics[stats1['name']]['drew_games'] += stats1['draws']
         self.playerStatistics[stats1['name']]['lost_games'] += stats1['loses']
 
+        self.playerStatistics[stats1['name']]['raised_errors'] += stats1['raised_errors']
         self.playerStatistics[stats1['name']]['invalid_moves'] += stats1['invalid_moves']
         self.playerStatistics[stats1['name']]['early_movements'] += stats1['early_movements']
         self.playerStatistics[stats1['name']]['max_captures_exceeded'] += stats1['exceed_max_captures']

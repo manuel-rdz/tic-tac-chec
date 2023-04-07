@@ -28,6 +28,7 @@ The set of rules that this evaluator checks are as follows:
 """
 from player import TTCPlayer
 import copy
+import sys
     
 class PlayerWrapper:
     def __init__(self, player, piecesColor):
@@ -41,6 +42,7 @@ class PlayerWrapper:
             'wins': 0,
             'loses': 0,
             'draws': 0,
+            'raised_errors': 0,
             'invalid_moves': 0,
             'early_movements': 0,
             'exceed_max_captures': 0,
@@ -373,8 +375,18 @@ class TTCEvaluator:
 
     def __playTurn(self, player):
         newBoard = copy.deepcopy(self.board)
-        newBoard = player.player.play(newBoard)
-        
+        try:
+            newBoard = player.player.play(newBoard)
+        except:
+            print(player.player.name, "raised an exception. Loses automatically")
+            player.statistics['raised_errors'] += 1
+            
+            exc_type, exc_value, _ = sys.exc_info()
+            print("Exception type:", exc_type)
+            print("Exception message:", exc_value)
+            
+            return self.LOSE
+    
         if self.__wasValidMove(self.board, newBoard, player):
             wasMovement, wasCapture = self.__wasPieceMovement(self.board, newBoard)
             if wasMovement:
