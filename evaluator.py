@@ -372,12 +372,8 @@ class TTCEvaluator:
         return board
 
     def __playTurn(self, player):
-        print("playTurn")
         newBoard = copy.deepcopy(self.board)
         newBoard = player.player.play(newBoard)
-
-        self.__printBoard(self.board)
-        self.__printBoard(newBoard)
         
         if self.__wasValidMove(self.board, newBoard, player):
             wasMovement, wasCapture = self.__wasPieceMovement(self.board, newBoard)
@@ -412,6 +408,7 @@ class TTCEvaluator:
             return self.CONTINUE
 
         else:
+            print("Referee Pawn Direction:", player.pawnDirection)
             print(player.player.name, "made an illegal move. Loses automatically")
             player.statistics['invalid_moves'] += 1
             self.__printBoard(self.board)
