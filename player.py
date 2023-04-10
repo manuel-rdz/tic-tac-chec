@@ -9,6 +9,8 @@ Value code for each piece is as follows:
 
 """
 
+import utils.utils as utils
+
 class TTCPlayer:
     # valuesCode is a list containing the value code that you must use to represent your pieces over the board. 
     # The sign of the value code will tell you if you are playing as white or black pieces.
@@ -19,8 +21,12 @@ class TTCPlayer:
     def setColor(self, color):
         pass
 
-    def play(self, world):
-        pass
+    def play(self, syncBoard):
+        board = utils.unflattenBoard(syncBoard)
+        
+        # Write your amazing algorithm to play Tic-Tac-Chec
+
+        return utils.updateSyncBoard(syncBoard, board)
 
     def reset(self):
         pass

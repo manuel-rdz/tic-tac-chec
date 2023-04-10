@@ -26,36 +26,13 @@ The set of rules that this evaluator checks are as follows:
     8. There is a limit of turns that can be played. If that limit is reached and no player has won, the game would be considered a draw.
 
 """
-from player import TTCPlayer
+import multiprocessing
+from utils.process import Process
+from utils.player_wrapper import PlayerWrapper
+
+import utils.utils as utils
 import copy
 import sys
-    
-class PlayerWrapper:
-    def __init__(self, player, piecesColor):
-        self.player = player
-        self.captures = 0
-        self.pawnDirection = -1
-        self.piecesColor = piecesColor
-
-        self.statistics = {
-            'name': self.player.name,
-            'wins': 0,
-            'loses': 0,
-            'draws': 0,
-            'raised_errors': 0,
-            'invalid_moves': 0,
-            'early_movements': 0,
-            'exceed_max_captures': 0,
-        }
-
-    def resetValues(self, color):
-        self.player.reset()
-        self.player.setColor(color)
-        self.captures = 0
-        self.pawnDirection = -1
-        self.piecesColor = color
-
-
 
 class TTCEvaluator:
     def __init__(self):
@@ -66,6 +43,8 @@ class TTCEvaluator:
         self.maxCaptures = 0
         self.maxTurns = 0
         self.board = None
+
+        self.TIMEOUT = 0
 
         self.WIN = 1
         self.LOSE = -1
@@ -375,17 +354,39 @@ class TTCEvaluator:
 
     def __playTurn(self, player):
         newBoard = copy.deepcopy(self.board)
+
+        flatBoard = utils.flattenBoard(newBoard)
+        syncBoard = multiprocessing.Array('i', flatBoard)
+        process = Process(
+            target = player.player.play,
+            args=(syncBoard,)
+        )
+        process.start()
+
         try:
-            newBoard = player.player.play(newBoard)
-        except:
+            process.join()
+
+            if process.is_alive():
+                print(player.player.name, "exceeded time limit to play. Loses automatically")
+                player.statistics['time_limit_exceeded'] += 1
+                process.terminate()
+                process.join()
+                return self.LOSE
+            
+            if process.exception:
+                raise process.exception
+            
+        except Exception:
             print(player.player.name, "raised an exception. Loses automatically")
             player.statistics['raised_errors'] += 1
-            
+
             exc_type, exc_value, _ = sys.exc_info()
             print("Exception type:", exc_type)
             print("Exception message:", exc_value)
-            
+
             return self.LOSE
+        
+        newBoard = utils.unflattenBoard(syncBoard)
     
         if self.__wasValidMove(self.board, newBoard, player):
             wasMovement, wasCapture = self.__wasPieceMovement(self.board, newBoard)
@@ -472,15 +473,17 @@ class TTCEvaluator:
         self.whitePlayer.resetValues(1)
         self.blackPlayer.resetValues(-1)
 
-    def runAnalysis(self, player1, player2, noGames, maxCaptures, maxTurns):
+    def runAnalysis(self, player1, player2, noGames, maxCaptures, maxTurns, TIMEOUT):
         self.maxCaptures = maxCaptures
         self.maxTurns = maxTurns
+        self.TIMEOUT = TIMEOUT
 
         # We put them this way because initializeGame is going to swap them
         self.blackPlayer = PlayerWrapper(player1, -1)
         self.whitePlayer = PlayerWrapper(player2, 1)
 
-        for _ in range(noGames):
+        for i in range(noGames):
+            print("------ START GAME ", i, "------")
             self.__initializeGame()
             self.__startGame()
 

@@ -5,12 +5,13 @@ import shutil
 from evaluator import TTCEvaluator
 
 class RoundRobin:
-    def __init__(self, players, gamesPerMatch, maxCapturesPerGame, maxTurnsPerGame):
+    def __init__(self, players, gamesPerMatch, maxCapturesPerGame, maxTurnsPerGame, TIMEOUT):
         self.players = players
 
         self.gamesPerMatch = gamesPerMatch
         self.maxCapturesPerGame = maxCapturesPerGame
         self.maxTurnsPerGame = maxTurnsPerGame
+        self.TIMEOUT = TIMEOUT
 
         self.evaluator = TTCEvaluator()
         self.playerStatistics = {}
@@ -26,6 +27,7 @@ class RoundRobin:
                 "won_games": 0,
                 "drew_games": 0,
                 "lost_games": 0,
+                "time_limit_exceeded": 0,
                 "raised_errors": 0,
                 "invalid_moves": 0,
                 "early_movements": 0,
@@ -48,6 +50,7 @@ class RoundRobin:
         self.playerStatistics[stats1['name']]['drew_games'] += stats1['draws']
         self.playerStatistics[stats1['name']]['lost_games'] += stats1['loses']
 
+        self.playerStatistics[stats1['name']]['time_limit_exceeded'] += stats1['time_limit_exceeded']
         self.playerStatistics[stats1['name']]['raised_errors'] += stats1['raised_errors']
         self.playerStatistics[stats1['name']]['invalid_moves'] += stats1['invalid_moves']
         self.playerStatistics[stats1['name']]['early_movements'] += stats1['early_movements']
@@ -100,7 +103,12 @@ class RoundRobin:
 
         for i in range(len(self.players)):
             for j in range(i + 1, len(self.players)):
-                stats1, stats2 = self.evaluator.runAnalysis(self.players[i], self.players[j], self.gamesPerMatch, self.maxCapturesPerGame, self.maxTurnsPerGame)
+                stats1, stats2 = self.evaluator.runAnalysis(self.players[i], 
+                                                            self.players[j], 
+                                                            self.gamesPerMatch, 
+                                                            self.maxCapturesPerGame, 
+                                                            self.maxTurnsPerGame, 
+                                                            self.TIMEOUT)
                 self.__fillStatistics(stats1, stats2)
                 self.__fillStatistics(stats2, stats1)
 
