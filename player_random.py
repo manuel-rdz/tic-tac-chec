@@ -9,8 +9,8 @@ Value code for each piece is as follows:
 
 """
 
+import copy
 import random
-import utils.utils as utils
 import time
 
 class TTCPlayer:
@@ -186,7 +186,7 @@ class TTCPlayer:
             return []
 
     def __moveRandomPiece(self, board):
-        print(self.name, "::moveRandomPiece")
+        #print(self.name, "::moveRandomPiece")
         piece = 0
 
         while(self.piecesOnBoard[piece] != 1): 
@@ -225,7 +225,6 @@ class TTCPlayer:
                     self.piecesOnBoard[abs(board[i][j])] = 1
 
     def __putRandomPiece(self, board):
-        print(self.name, "::putRandomPiece")
         piece = -1
         while(piece == -1 or self.piecesOnBoard[piece] != 0):
             piece = random.randint(1, 4)
@@ -255,25 +254,31 @@ class TTCPlayer:
 
     def play(self, board):
         start = time.time()
+        self.currentTurn += 1
+        self.__updatePiecesOnBoard(board)
+        self.__updatePawnDirection(board)
+
+        originalBoard = copy.deepcopy(board)
         print("-----", self.name, "turn ", self.currentTurn, "-----")
         #board = utils.unflattenBoard(syncBoard)
 
+        while True:
 
-        self.__updatePiecesOnBoard(board)
-        self.__updatePawnDirection(board)
-        self.currentTurn += 1
-
-        if self.currentTurn < 3:
-            newBoard = self.__putRandomPiece(board)
-        elif sum(self.piecesOnBoard) == 0: # There are no pieces on the board
-            newBoard = self.__putRandomPiece(board)
-        elif sum(self.piecesOnBoard) == 4: # All the pieces are on the board
-            newBoard = self.__moveRandomPiece(board)
-        else:
-            if random.randint(0, 1) == 0:
+            if self.currentTurn < 3:
                 newBoard = self.__putRandomPiece(board)
-            else:
+            elif sum(self.piecesOnBoard) == 0: # There are no pieces on the board
+                newBoard = self.__putRandomPiece(board)
+            elif sum(self.piecesOnBoard) == 4: # All the pieces are on the board
                 newBoard = self.__moveRandomPiece(board)
+            else:
+                if random.randint(0, 1) == 0:
+                    newBoard = self.__putRandomPiece(board)
+                else:
+                    newBoard = self.__moveRandomPiece(board)
+
+            if newBoard != originalBoard:
+                break
+            
 
         print("Time taken: ", time.time() - start)
         #print(newBoard, flush=True)

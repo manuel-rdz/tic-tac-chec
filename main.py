@@ -9,5 +9,5 @@ player2 = TTCPlayer("juan2")
 #player4 = TTCPlayer("juan4")
 
 if __name__ == '__main__':
-    tournament = RoundRobin([player1, player2], 10, 5, 10, 2)
+    tournament = RoundRobin([player1, player2], 10, 5, 70)
     tournament.start()
