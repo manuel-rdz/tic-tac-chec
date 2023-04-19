@@ -44,6 +44,39 @@ class TTCPlayer:
     def __isInsideBoard(self, row, col):
         return (row >= 0 and row < 4 and col >= 0 and col < 4)
 
+        # Function to check whether a movement was a movement or not
+    # If it was a movement, it also checks if it was a capture or not.
+    # For a movement to be classified as a capture, 2 conditions have to occur
+    # 1. Only 2 squares changed value
+    # 2. One square has to change from used to empty and the other from used to used with different color    
+    def __wasPieceMovement(self, oldBoard, newBoard):
+        changedSquares = []
+
+        for i in range(4):
+            for j in range(4):
+                if oldBoard[i][j] != newBoard[i][j]:
+                    changedSquares.append((i, j))
+
+        if len(changedSquares) != 2:
+            return False, False
+        
+        def areChangesFromCapture(row1, col1, row2, col2):
+            return (newBoard[row1][col1] == 0
+                    and oldBoard[row2][col2] != 0 
+                    and newBoard[row2][col2] == oldBoard[row1][col1])
+        
+        def areChangesFromMovement(row1, col1, row2, col2):
+            return (newBoard[row1][col1] == 0
+                    and newBoard[row2][col2] == oldBoard[row1][col1])
+        
+        wasMovement = (areChangesFromMovement(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
+                or areChangesFromMovement(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
+        
+        wasCapture = (areChangesFromCapture(changedSquares[0][0], changedSquares[0][1], changedSquares[1][0], changedSquares[1][1]) 
+                or areChangesFromCapture(changedSquares[1][0], changedSquares[1][1], changedSquares[0][0], changedSquares[0][1]))
+
+        return (wasMovement, wasCapture)
+
     def __getPawnValidMovements(self, position, board, pawnDirection):
         validMovements = []
         
@@ -240,18 +273,6 @@ class TTCPlayer:
 
         return board
 
-    def playMoves(self, board):
-        self.__updatePiecesOnBoard(board)
-        self.__updatePawnDirection(board)
-
-        if sum(self.piecesOnBoard) == 0:
-            newBoard = self.__putRandomPiece(board)
-        else:
-            newBoard = self.__moveRandomPiece(board)
-
-        return newBoard
-
-
     def play(self, board):
         start = time.time()
         self.currentTurn += 1
@@ -276,6 +297,15 @@ class TTCPlayer:
                 else:
                     newBoard = self.__moveRandomPiece(board)
 
+            _, wasCapture = self.__wasPieceMovement(originalBoard, newBoard)
+
+            if wasCapture:
+                if self.availableCaptures > 0:
+                    self.availableCaptures -= 1
+                else:
+                    board = copy.deepcopy(originalBoard)
+                    continue
+
             if newBoard != originalBoard:
                 break
             
@@ -291,3 +321,4 @@ class TTCPlayer:
         self.pawnDirection = -1
         self.piecesOnBoard = [0] * 5
         self.currentTurn = -1
+        self.availableCaptures = 5
