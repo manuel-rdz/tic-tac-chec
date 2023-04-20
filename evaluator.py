@@ -374,6 +374,7 @@ class TTCEvaluator:
         return board
 
     def __playTurn(self, player):
+        print("-----", player.player.name, "with pieces", player.piecesColor, "turn:", self.currentTurn, "-----")
         newBoard = copy.deepcopy(self.board)
         try:
             newBoard = player.player.play(newBoard)
@@ -480,8 +481,9 @@ class TTCEvaluator:
         self.blackPlayer = PlayerWrapper(player1, -1)
         self.whitePlayer = PlayerWrapper(player2, 1)
 
-        for _ in range(noGames):
+        for i in range(noGames):
             self.__initializeGame()
+            print("----- STARTING GAME", i, "-----")
             self.__startGame()
 
         return self.whitePlayer.statistics, self.blackPlayer.statistics

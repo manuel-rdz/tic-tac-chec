@@ -277,14 +277,12 @@ class TTCPlayer:
         start = time.time()
         self.currentTurn += 1
         self.__updatePiecesOnBoard(board)
-        self.__updatePawnDirection(board)
 
         originalBoard = copy.deepcopy(board)
-        print("-----", self.name, "turn ", self.currentTurn, "-----")
-        #board = utils.unflattenBoard(syncBoard)
 
-        while True:
-
+        # We put a limit since there can be a really rare case when the only valid movement is a capture
+        # And if in that moment it happens that you can no longer make any capture, it will cicle. That's why we put a limit.
+        for _ in range(1000):
             if self.currentTurn < 3:
                 newBoard = self.__putRandomPiece(board)
             elif sum(self.piecesOnBoard) == 0: # There are no pieces on the board
@@ -308,8 +306,8 @@ class TTCPlayer:
 
             if newBoard != originalBoard:
                 break
-            
-
+        
+        self.__updatePawnDirection(newBoard)
         print("Time taken: ", time.time() - start)
         #print(newBoard, flush=True)
 
