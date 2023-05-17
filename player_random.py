@@ -271,6 +271,10 @@ class TTCPlayer:
 
         board[newRow][newCol] = piece * self.piecesColor
 
+        # If a new pawn is put on the board, we should reset its direction.
+        if piece == 1:
+            self.pawnDirection = -1
+
         return board
 
     def play(self, board):

@@ -271,6 +271,9 @@ class TTCEvaluator:
         oldBoard[row][col] = pieceCode
         return False
 
+    # I think we can remove the __wasPieceMovement method by modifying 
+    # this method to return more information
+    # TODO: Refactor the code to delete __wasPieceMovement method.
     def __wasValidMove(self, oldBoard, newBoard, player):
         pieces = [None] * 5
 
@@ -286,6 +289,11 @@ class TTCEvaluator:
                 wasBoardFound = self.__compareWithBoardsWithMovement(i * player.piecesColor, pieces[i], oldBoard, newBoard, player)
             else:
                 wasBoardFound = self.__compareWithBoardsWithNewPiece(i * player.piecesColor, oldBoard, newBoard)
+                # This patch helps detect if a new pawn was put over the board
+                # We do this because we have to reset the direction info of the new pawns
+                # TODO: Fix this in a more elegant way along with the refactoring of the code.
+                if wasBoardFound and i == 1:
+                    player.pawnDirection = -1
 
             if wasBoardFound:
                 return True
@@ -415,6 +423,7 @@ class TTCEvaluator:
                 self.__printBoard(newBoard)
                 return self.WIN
 
+            # This only covers the case when the pawn moved
             self.__updatePawnDirection(newBoard, player)
             # Update board
             self.board = newBoard
